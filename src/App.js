@@ -11,23 +11,42 @@ import { AppContext, context } from './components/AppContext';
 
 class App extends Component {
   state = context;
-
+  segmentRef;
   componentDidMount() {
     const vm = this.state.verticalMenu;
     vm.reference = createRef();
+    this.segmentRef = this.state.verticalMenu.reference;
     this.setState({ verticalMenu: vm });
   }
-  segmentRef = this.state.verticalMenu.reference;
 
   toggleVerticalMenu = () => {
-    const vm = this.state.verticalMenu;
-    vm.visible = !vm.visible;
-    this.setState({ verticalMenu: vm });
+    const verticalMenu = this.state.verticalMenu;
+    /* verticalMenu.visible = !verticalMenu.visible;
+    console.log('toggleVerticalMenu', verticalMenu.visible); */
+    verticalMenu.visible = true;
+    this.setState({ verticalMenu });
   };
   handleVerticalMenuHide = () => {
     const vm = this.state.verticalMenu;
     vm.visible = false;
     this.setState({ verticalMenu: vm });
+  };
+
+  handleHideClick = () => {
+    const verticalMenu = this.state.verticalMenu;
+    verticalMenu.visible = false;
+    this.setState({ verticalMenu });
+  };
+  handleShowClick = () => {
+    const verticalMenu = this.state.verticalMenu;
+    verticalMenu.visible = true;
+    this.setState({ verticalMenu });
+  };
+
+  handleSidebarHide = () => {
+    const verticalMenu = this.state.verticalMenu;
+    verticalMenu.visible = false;
+    this.setState({ verticalMenu });
   };
 
   render() {
@@ -37,9 +56,8 @@ class App extends Component {
       <Router>
         <Responsive>
           <AppContext.Provider value={this.state}>
-            <MainMenu toggleVerticalMenu={this.toggleVerticalMenu} />
-            <VerticalMenu handleVerticalMenuHide={this.handleVerticalMenuHide} />
-
+            <MainMenu handleShowClick={this.handleShowClick} />
+            <VerticalMenu handleSidebarHide={this.handleSidebarHide} />
             <Sidebar.Pushable as={Segment} basic>
               <Sidebar.Pusher dimmed={false}>
                 <Ref innerRef={this.segmentRef}>

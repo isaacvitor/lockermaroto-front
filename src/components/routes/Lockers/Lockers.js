@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Header, Icon } from 'semantic-ui-react';
 import { socket as io } from '../../../services/io';
-import { listLockers, setKeyWith } from '../../../services/api/lockers';
-import { Button, Card, Label, Image } from 'semantic-ui-react';
+import { listLockers } from '../../../services/api/lockers';
+import { Button, Card, Label } from 'semantic-ui-react';
 
 import { AppContext } from '../../AppContext';
 io.on('updateKeyWith');
@@ -121,9 +121,9 @@ class Lockers extends Component {
     io.on('updateLockerState', lockerState => {
       let { lockers } = this.state;
       lockers.forEach(l => {
-        if (l.mac === lockerState.mac) {
-          l.pins = lockerState.pins;
-          l.codeState = lockerState.codeState;
+        if (l.mac === lockerState.locker.mac) {
+          l.pins = lockerState.locker.pins;
+          l.codeState = lockerState.locker.codeState;
         }
       });
       this.setState({ lockers });
@@ -135,29 +135,28 @@ class Lockers extends Component {
   };
 
   render() {
-    const { lockers, user } = this.state;
+    const { lockers } = this.state;
     return (
       <div>
-        <div>
-          <Header as="h1">Lockers</Header>
-          <Card.Group>
-            {lockers.map(locker => (
-              <Card centered key={locker._id}>
-                {this.handleKeyWith(locker)}
-                <Card.Content>
-                  <Card.Header>
-                    {locker.name} - {this.updateStateIcon(locker)}
-                  </Card.Header>
-                  <Card.Meta>{locker.mac}</Card.Meta>
-                </Card.Content>
-                <Card.Content extra>
-                  <div className="ui two buttons">{this.updateStateButton(locker)}</div>
-                </Card.Content>
-              </Card>
-            ))}
-          </Card.Group>
+        <Header as="h1">Lockers</Header>
+        <Card.Group>
+          {lockers.map(locker => (
+            <Card centered key={locker._id}>
+              {this.handleKeyWith(locker)}
+              <Card.Content>
+                <Card.Header>
+                  {locker.name} - {this.updateStateIcon(locker)}
+                </Card.Header>
+                <Card.Meta>{locker.mac}</Card.Meta>
+              </Card.Content>
+              <Card.Content extra>
+                <div className="ui two buttons">{this.updateStateButton(locker)}</div>
+              </Card.Content>
+            </Card>
+          ))}
+        </Card.Group>
 
-          {/* <Icon name="box" size="large" />
+        {/* <Icon name="box" size="large" />
           <Icon name="key" size="large" />
           <Icon name="heartbeat" size="large" />
           <Icon name="lock" color="green" size="large" />
@@ -174,7 +173,6 @@ class Lockers extends Component {
           <Icon name="grid layout" size="large" />
           <Icon name="options" size="large" />
           <Icon name="sidebar" size="large" /> */}
-        </div>
       </div>
     );
   }

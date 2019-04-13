@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Menu, Icon } from 'semantic-ui-react';
 
+import { AppContext } from '../AppContext';
+
 class MainMenu extends Component {
   state = {
     showMe: false,
@@ -11,6 +13,7 @@ class MainMenu extends Component {
         text: 'Lockers',
         icon: 'boxes',
         path: '/',
+        disabled: false,
         restrict: false
       },
       {
@@ -18,6 +21,7 @@ class MainMenu extends Component {
         text: 'Usuários',
         icon: 'users',
         path: '/config/users',
+        disabled: false,
         restrict: true
       },
       {
@@ -25,9 +29,17 @@ class MainMenu extends Component {
         text: 'Configurações',
         icon: 'cogs',
         path: '',
+        disabled: this.context.verticalMenu.visible,
         restrict: true
       },
-      { name: 'logout', text: 'Sair', icon: 'sign-out', path: '', restrict: false, active: false }
+      {
+        name: 'logout',
+        text: 'Sair',
+        icon: 'sign-out',
+        path: '',
+        disabled: false,
+        restrict: false
+      }
     ],
     activeMenu: null
   };
@@ -40,6 +52,7 @@ class MainMenu extends Component {
     } else {
       this.setState({ activeMenu: null, showMe: false });
     }
+    this.onChangeSideBar(this.context.verticalMenu.visible);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -53,16 +66,23 @@ class MainMenu extends Component {
         this.setState({ activeMenu: null, showMe: false });
       }
     }
+    this.onChangeSideBar(this.context.verticalMenu.visible);
   }
+
+  onChangeSideBar = visible => {
+    const menus = this.state.menus;
+    menus.forEach(m => {
+      if (m.name === 'config') {
+        m.disabled = visible;
+      }
+    });
+    this.setState({ menus });
+  };
 
   logout = () => {
     localStorage.clear(); //talvez seja radical demais..
     this.props.history.push('/');
   };
-
-  toggleSidebar() {
-    this.props.toggleVerticalMenu();
-  }
 
   handleItemClick = (e, { name }) => {
     const menu = this.state.menus.filter(m => m.name === name)[0];
@@ -71,7 +91,7 @@ class MainMenu extends Component {
     } else {
       switch (menu.name) {
         case 'config':
-          this.toggleSidebar();
+          this.props.handleShowClick();
           break;
         case 'logout':
           this.logout();
@@ -87,12 +107,13 @@ class MainMenu extends Component {
     return (
       <div>
         {showMe && (
-          <Menu icon="labeled" fixed="top" fluid={true} pointing widths={menus.length}>
+          <Menu icon="labeled" fixed="top" pointing widths={menus.length}>
             {menus.map(menu => (
               <Menu.Item
                 key={menu.name}
                 name={menu.name}
                 active={activeMenu.name === menu.name}
+                disabled={menu.disabled}
                 color="grey"
                 onClick={this.handleItemClick}
               >
@@ -106,5 +127,7 @@ class MainMenu extends Component {
     );
   }
 }
+
+MainMenu.contextType = AppContext;
 
 export default withRouter(MainMenu);
