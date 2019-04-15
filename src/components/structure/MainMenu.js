@@ -6,6 +6,7 @@ import { AppContext } from '../AppContext';
 
 class MainMenu extends Component {
   state = {
+    user: this.context.user,
     showMe: false,
     menus: [
       {
@@ -43,16 +44,22 @@ class MainMenu extends Component {
     ],
     activeMenu: null
   };
+
   componentDidMount() {
+    const { user } = this.context;
     const path = this.props.location.pathname;
     const menu = this.state.menus.filter(m => m.path === path);
-
-    if (menu.length) {
-      this.setState({ activeMenu: menu[0], showMe: true });
+    if (path === '/login') {
+      this.setState({ activeMenu: null, showMe: false, user });
     } else {
-      this.setState({ activeMenu: null, showMe: false });
+      if (menu.length) {
+        this.setState({ activeMenu: menu[0], showMe: true, user });
+      } else {
+        this.setState({ activeMenu: {}, showMe: true, user });
+      }
     }
-    this.onChangeSideBar(this.context.verticalMenu.visible);
+
+    //this.onChangeSideBar(this.context.verticalMenu.visible);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -60,13 +67,17 @@ class MainMenu extends Component {
       const path = nextProps.location.pathname;
       const menu = this.state.menus.filter(m => m.path === path);
 
-      if (menu.length) {
-        this.setState({ activeMenu: menu[0], showMe: true });
+      if (path === '/login') {
+        this.setState({ activeMenu: {}, showMe: false });
       } else {
-        this.setState({ activeMenu: null, showMe: false });
+        if (menu.length) {
+          this.setState({ activeMenu: menu[0], showMe: true });
+        } else {
+          this.setState({ activeMenu: {}, showMe: true });
+        }
       }
     }
-    this.onChangeSideBar(this.context.verticalMenu.visible);
+    //this.onChangeSideBar(this.context.verticalMenu.visible);
   }
 
   onChangeSideBar = visible => {
@@ -91,7 +102,7 @@ class MainMenu extends Component {
     } else {
       switch (menu.name) {
         case 'config':
-          this.props.handleShowClick();
+          this.props.toggleSideBar();
           break;
         case 'logout':
           this.logout();
@@ -103,12 +114,23 @@ class MainMenu extends Component {
   };
 
   render() {
-    const { activeMenu, showMe, menus } = this.state;
+    const { activeMenu, showMe, menus, user } = this.state;
+    let menusToShow = [];
+    console.log('USER', user);
+
+    menus.forEach(m => {
+      if (!user.isAdmin && !m.restrict) {
+        menusToShow.push(m);
+      }
+      if (user.isAdmin) {
+        menusToShow.push(m);
+      }
+    });
     return (
       <div>
         {showMe && (
-          <Menu icon="labeled" fixed="top" pointing widths={menus.length}>
-            {menus.map(menu => (
+          <Menu icon="labeled" fixed="top" pointing widths={menusToShow.length}>
+            {menusToShow.map(menu => (
               <Menu.Item
                 key={menu.name}
                 name={menu.name}

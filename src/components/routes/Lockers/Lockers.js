@@ -15,11 +15,11 @@ class Lockers extends Component {
   };
 
   async componentDidMount() {
-    this.subscribeIOEvents();
     const { user } = this.context;
     this.setState({ user });
     try {
       const { data } = await listLockers();
+      this.subscribeIOEvents();
       data.forEach(locker => (locker.keyWith ? locker.keyWith : null));
       this.setState({ lockers: data });
       console.log('lockers', this.state.lockers);
@@ -28,19 +28,9 @@ class Lockers extends Component {
     }
   }
 
-  /* getKeyLocker = async locker => {
-    const { lastKeyWith } = this.state;
-    const keyWith = {
-      user: this.state.user,
-      id: locker._id
-    };
-    if (lastKeyWith) {
-      //&& lastKeyWith._id !== locker._id
-    }
-    //await setKeyWith(locker._id, keyWith); 
-
-    console.log('getKeyLocker', keyWith);
-  }; */
+  componentWillUnmount() {
+    this.unsubscribeIOEvents();
+  }
 
   lockRemote = locker => {
     const { user } = this.state;
@@ -57,36 +47,65 @@ class Lockers extends Component {
   };
 
   updateStateButton = locker => {
+    const user = this.state.user;
+    let disableLocker = true;
+    locker.remoteUsers.forEach(u => {
+      if (u._id === user._id) {
+        disableLocker = false;
+      }
+    });
     if (locker.codeState === '111') {
       return (
-        <Button color="green" onClick={this.unlockRemote.bind(this, locker)} icon>
+        <Button
+          color="green"
+          disabled={disableLocker}
+          onClick={this.unlockRemote.bind(this, locker)}
+          icon
+        >
           <Icon name="unlock" />
         </Button>
       );
     } else if (locker.codeState === '101') {
       return (
-        <Button color="red" onClick={this.lockRemote.bind(this, locker)} icon>
+        <Button
+          color="red"
+          disabled={disableLocker}
+          onClick={this.lockRemote.bind(this, locker)}
+          icon
+        >
           <Icon name="lock" />
         </Button>
       );
     } else if (locker.codeState === '000') {
       return (
-        <Button color="orange" icon>
-          <Icon name="heartbeat" size="large" />
+        <Button disabled={disableLocker} color="orange" icon>
+          <Icon name="lock open" size="large" />
         </Button>
       );
     }
   };
 
-  updateStateIcon = locker => {
+  mountStateIcon = locker => {
     if (locker.codeState === '111' || locker.codeState === '110') {
-      return <Icon name="lock" color="green" size="large" />;
+      return <Icon name="lock" color="green" />;
     } else if (locker.codeState === '101' || locker.codeState === '101') {
-      return <Icon name="unlock" color="orange" size="large" />;
+      return <Icon name="unlock" color="orange" />;
     } else if (locker.codeState === '000') {
-      return <Icon name="heartbeat" color="red" size="large" />;
+      return <Icon name="lock open" color="red" />;
     } else {
-      return <Icon name="thumbs down" color="red" size="large" />;
+      return <Icon name="thumbs down" color="red" />;
+    }
+  };
+
+  defineColorLockerByState = locker => {
+    if (locker.codeState === '111' || locker.codeState === '110') {
+      return 'green';
+    } else if (locker.codeState === '101' || locker.codeState === '101') {
+      return 'orange';
+    } else if (locker.codeState === '000') {
+      return 'red';
+    } else {
+      return 'red';
     }
   };
 
@@ -108,18 +127,9 @@ class Lockers extends Component {
 
   //IO Events
   subscribeIOEvents = () => {
-    io.on('updateLocker', lockerUpdated => {
-      /* const lockers = this.state.lockers;
-      lockers.forEach(l => {
-        if (l._id === lockerUpdated._id) {
-          l = lockerUpdated;
-        }
-      });
-      this.setState({ lockers }); */
-    });
-
     io.on('updateLockerState', lockerState => {
       let { lockers } = this.state;
+      console.log('updateLockerState', lockerState);
       lockers.forEach(l => {
         if (l.mac === lockerState.locker.mac) {
           l.pins = lockerState.locker.pins;
@@ -134,6 +144,10 @@ class Lockers extends Component {
     });
   };
 
+  unsubscribeIOEvents = () => {
+    io.removeAllListeners();
+  };
+
   render() {
     const { lockers } = this.state;
     return (
@@ -141,11 +155,11 @@ class Lockers extends Component {
         <Header as="h1">Lockers</Header>
         <Card.Group>
           {lockers.map(locker => (
-            <Card centered key={locker._id}>
+            <Card color={this.defineColorLockerByState(locker)} key={locker._id}>
               {this.handleKeyWith(locker)}
               <Card.Content>
                 <Card.Header>
-                  {locker.name} - {this.updateStateIcon(locker)}
+                  {locker.name} - {this.mountStateIcon(locker)}
                 </Card.Header>
                 <Card.Meta>{locker.mac}</Card.Meta>
               </Card.Content>
@@ -155,24 +169,6 @@ class Lockers extends Component {
             </Card>
           ))}
         </Card.Group>
-
-        {/* <Icon name="box" size="large" />
-          <Icon name="key" size="large" />
-          <Icon name="heartbeat" size="large" />
-          <Icon name="lock" color="green" size="large" />
-          <Icon name="lock open" color="red" size="large" />
-          <Icon name="unlock" color="orange" size="large" />
-          <Icon name="unlock alternate" color="orange" size="large" />
-          <Icon name="exclamation triangle" color="yellow" size="large" />
-          <Icon name="id badge" size="large" />
-          <Icon name="user" size="large" />
-          <Icon name="user plus" size="large" />
-          <Icon name="user times" size="large" />
-          <Icon name="block layout" size="large" />
-          <Icon name="browser" size="large" />
-          <Icon name="grid layout" size="large" />
-          <Icon name="options" size="large" />
-          <Icon name="sidebar" size="large" /> */}
       </div>
     );
   }

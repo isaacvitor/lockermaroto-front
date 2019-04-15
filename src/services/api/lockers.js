@@ -4,6 +4,10 @@ export const listLockers = async () => {
   return await http.get(`locker`);
 };
 
-export const setKeyWith = async (id, keyWith) => {
-  return await http.put(`locker/${id}`, keyWith);
+export const updateRemoteUsers = async (lockerID, remoteUsers) => {
+  return await http.put(`locker/${lockerID}/updateremoteusers`, remoteUsers);
+};
+
+export const updateEKeyUsers = async (lockerID, eKeyUsers) => {
+  return await http.put(`locker/${lockerID}/updateekeyusers`, eKeyUsers);
 };
