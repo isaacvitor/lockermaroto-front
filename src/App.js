@@ -4,7 +4,7 @@ import { PrivateRoute } from './components/routes/PrivateRoute';
 import { Login } from './components/routes/Login';
 import Routes from './components/routes';
 import { Ref, Segment, Sidebar, Responsive } from 'semantic-ui-react';
-import { VerticalMenu } from './components/structure';
+import VerticalMenu from './components/structure/VerticalMenu';
 import MainMenu from './components/structure/MainMenu';
 
 import { AppContext, context } from './components/AppContext';
@@ -19,11 +19,9 @@ class App extends Component {
     this.setState({ verticalMenu: vm });
   }
 
-  toggleVerticalMenu = () => {
+  toggleSideBar = () => {
     const verticalMenu = this.state.verticalMenu;
-    /* verticalMenu.visible = !verticalMenu.visible;
-    console.log('toggleVerticalMenu', verticalMenu.visible); */
-    verticalMenu.visible = true;
+    verticalMenu.visible = !verticalMenu.visible;
     this.setState({ verticalMenu });
   };
   handleVerticalMenuHide = () => {
@@ -43,10 +41,10 @@ class App extends Component {
     this.setState({ verticalMenu });
   };
 
-  handleSidebarHide = () => {
+  handleSidebarHide = cb => {
     const verticalMenu = this.state.verticalMenu;
     verticalMenu.visible = false;
-    this.setState({ verticalMenu });
+    this.setState({ verticalMenu }, cb);
   };
 
   render() {
@@ -56,7 +54,7 @@ class App extends Component {
       <Router>
         <Responsive>
           <AppContext.Provider value={this.state}>
-            <MainMenu handleShowClick={this.handleShowClick} />
+            <MainMenu toggleSideBar={this.toggleSideBar} />
             <VerticalMenu handleSidebarHide={this.handleSidebarHide} />
             <Sidebar.Pushable as={Segment} basic>
               <Sidebar.Pusher dimmed={false}>

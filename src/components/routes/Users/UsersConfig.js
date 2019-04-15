@@ -14,7 +14,8 @@ import {
 } from 'semantic-ui-react';
 import { socket as io } from '../../../services/io';
 import { listUsers, createUser, removeUser, updateUser } from '../../../services/api/users';
-class Users extends Component {
+
+class UsersConfig extends Component {
   state = {
     isLoadingUsers: true,
     users: [],
@@ -38,6 +39,10 @@ class Users extends Component {
   async componentDidMount() {
     this.fetchUsers();
     this.subscribeIOEvents();
+  }
+
+  componentWillUnmount() {
+    this.unsubscribeIOEvents();
   }
 
   fetchUsers = async () => {
@@ -147,6 +152,10 @@ class Users extends Component {
     });
   };
 
+  unsubscribeIOEvents = () => {
+    io.removeAllListeners();
+  };
+
   render() {
     const {
       isLoading,
@@ -160,10 +169,10 @@ class Users extends Component {
     } = this.state;
     return (
       <div>
-        <Header as="h2">
+        <Header as="h1">
           <Header.Content>
             Usuários
-            <Header.Subheader>Gerêncie os usuários</Header.Subheader>
+            <Header.Subheader>Gerenciamento dos usuários</Header.Subheader>
           </Header.Content>
         </Header>
 
@@ -316,4 +325,4 @@ class Users extends Component {
   }
 }
 
-export { Users };
+export { UsersConfig };

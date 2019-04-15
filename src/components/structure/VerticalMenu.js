@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { Icon, Menu, Sidebar } from 'semantic-ui-react';
 
 import { AppContext } from '../AppContext';
@@ -14,7 +15,7 @@ class VerticalMenu extends Component {
         name: 'lockers',
         text: 'Lockers',
         icon: 'boxes',
-        path: '/',
+        path: '/config/lockers',
         disabled: false,
         restrict: false
       },
@@ -24,14 +25,6 @@ class VerticalMenu extends Component {
         icon: 'users',
         path: '/config/users',
         disabled: false,
-        restrict: true
-      },
-      {
-        name: 'config',
-        text: 'Configurações',
-        icon: 'cogs',
-        path: '',
-        disabled: this.context.verticalMenu.visible,
         restrict: true
       },
       {
@@ -46,7 +39,29 @@ class VerticalMenu extends Component {
     activeMenu: null
   };
 
-  handleItemClick = (e, { name }) => this.setState({ activeItem: name });
+  logout = () => {
+    localStorage.clear(); //talvez seja radical demais..
+    this.props.handleSidebarHide();
+    this.props.history.push('/login');
+  };
+
+  handleItemClick = menu => {
+    if (menu.path !== '') {
+      this.props.handleSidebarHide();
+      this.props.history.push(menu.path);
+    } else {
+      switch (menu.name) {
+        case 'config':
+          this.props.handleShowClick();
+          break;
+        case 'logout':
+          this.logout();
+          break;
+        default:
+          break;
+      }
+    }
+  };
 
   //= function({ visible, reference, handleVerticalMenuHide })
   render() {
@@ -58,7 +73,6 @@ class VerticalMenu extends Component {
         animation={animation}
         direction={direction}
         target={reference}
-        onHide={this.props.handleSidebarHide}
         vertical
         inverted
         icon="labeled"
@@ -66,7 +80,7 @@ class VerticalMenu extends Component {
         visible={visible}
       >
         {menus.map(m => (
-          <Menu.Item key={m.name} as="a">
+          <Menu.Item key={m.name} as="a" onClick={this.handleItemClick.bind(this, m)}>
             <Icon name={m.icon} />
             {m.text}
           </Menu.Item>
@@ -83,4 +97,4 @@ VerticalMenu.propTypes = {
 
 VerticalMenu.contextType = AppContext;
 
-export { VerticalMenu };
+export default withRouter(VerticalMenu);
